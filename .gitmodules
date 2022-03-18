@@ -1,0 +1,13 @@
+
+[submodule "external/bisect-core-ts-be"]
+	path = external/bisect-core-ts-be
+	url = https://github.com/bisect-pt/bisect-core-ts-be
+[submodule "external/vero_sdk"]
+	path = external/vero_sdk
+	url = bisect@vs-ssh.visualstudio.com:v3/bisect/VERO/vero_sdk
+[submodule "external/ebu-list-sdk"]
+	path = external/ebu-list-sdk
+	url = https://github.com/bisect-pt/ebu-list-sdk.git
+[submodule "external/bisect-core-ts"]
+	path = external/bisect-core-ts
+	url = https://github.com/bisect-pt/bisect-core-ts.git

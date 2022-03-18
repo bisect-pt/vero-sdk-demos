@@ -1,0 +1,13 @@
+{
+    "npmClient": "yarn",
+    "useWorkspaces": false,
+    "packages": [
+        "external/vero_sdk/packages/lib",
+        "external/vero_sdk/packages/vero-api",
+        "external/bisect-core-ts",
+        "external/ebu-list-sdk/lib",
+        "external/bisect-core-ts-be",
+        "demos/gen-capture-pcap"
+    ],
+    "version": "0.0.0"
+}
