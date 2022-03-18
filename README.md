@@ -1,20 +1,39 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Introduction
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+This repository contains a vero-sdk demo that automates the generator and pcap capture.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+# Build
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+## First time
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+-   Install yarn
+
+https://classic.yarnpkg.com/en/docs/install/#debian-stable
+
+## Bootstrap
+
+-   cd <root_repository>
+
+-   yarn install
+
+-   npx lerna bootstrap
+
+-   npx lerna run build
+
+## How to run the script that automates the generator and capture a pcap.
+
+-   cd <root_repository>/demos/gen-capture-pcap
+
+-   yarn run gen-capture-pcap -b <server_host> -u <username> -p <user_password>
+
+-   b - The host server that the demo will run against.
+
+-   u - The username from the demo user that you want to create.
+
+-   p - The password from the demo user that you want to create.
+
+Example:
+
+-   `yarn run gen-capture-pcap -b 192.168.88.252 -u admin -p admin`
+
+That would start the demo.
