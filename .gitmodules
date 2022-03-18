@@ -8,3 +8,6 @@
 [submodule "external/bisect-core-ts"]
 	path = external/bisect-core-ts
 	url = https://github.com/bisect-pt/bisect-core-ts.git
+[submodule "external/vero-sdk"]
+	path = external/vero-sdk
+	url = https://github.com/bisect-pt/vero-sdk
