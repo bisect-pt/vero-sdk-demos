@@ -14,6 +14,8 @@ https://classic.yarnpkg.com/en/docs/install/#debian-stable
 
 -   cd <root_repository>
 
+-   git submodule update --init --recursive
+
 -   yarn install
 
 -   npx lerna bootstrap
