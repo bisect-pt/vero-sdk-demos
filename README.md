@@ -30,9 +30,9 @@ https://classic.yarnpkg.com/en/docs/install/#debian-stable
 
 -   b - The host server that the demo will run against.
 
--   u - The username from the demo user that you want to create.
+-   u - The username.
 
--   p - The password from the demo user that you want to create.
+-   p - The password.
 
 Example:
 
