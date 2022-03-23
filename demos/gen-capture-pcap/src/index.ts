@@ -6,8 +6,42 @@ import {
     CaptureJobState,
     IRateCondition,
 } from '@mipw/vero-sdk';
+import { SocketEvents, IGeneratorStatusEntry } from '@mipw/vero-api';
+import { IGeneratorProfile, IGeneratorStatus } from '@mipw/vero-api';
 import { v1 as uuid } from 'uuid';
 import yargs from 'yargs';
+import * as readline from 'readline';
+
+const askForNumber = function (question: string, readline: any): Promise<number> {
+    return new Promise((resolve, reject) => {
+        readline.question(question, (answer: string) => {
+            resolve(parseInt(answer));
+        });
+    });
+};
+
+function waitForSfpStatus(ws: SocketIOClient.Socket, timeoutMs: number): Promise<IGeneratorStatusEntry | undefined> {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            ws.off('message', callback);
+            resolve(undefined);
+        }, timeoutMs);
+
+        const eventName = SocketEvents.generatorStatus;
+
+        const callback = (msg: IWSMessage) => {
+            if (msg.event !== eventName) {
+                return;
+            }
+
+            clearTimeout(timer);
+            ws.off('message', callback);
+            resolve(msg.data[0]);
+        };
+
+        ws.on('message', callback);
+    });
+}
 
 const parser = yargs(process.argv.slice(2))
     .usage('Usage: $0 <command> [options]')
@@ -69,196 +103,16 @@ function getActiveRateCondition(): IRateCondition[] {
     ];
 }
 
+export interface IWSMessage {
+    event: string;
+    data: any;
+}
+
 async function generatorCapturePcap(username: string, password: string, address: string): Promise<void> {
-    const senderProfile = {
-        id: '7d390970-VERO-11ea-b7c2-0de9f6c32be1',
-        meta: {
-            description: '720p Narrow',
-            isSystemProfile: true,
-        },
-        senders: {
-            _id: '6127ba78f6019707b357629f',
-            video: [
-                {
-                    isActive: true,
-                    settings: {
-                        resolution: 'HDReady',
-                        schedule: {
-                            kind: 'narrow',
-                        },
-                        enableMovingBar: true,
-                        patternId: '0',
-                    },
-                    network: {
-                        enabled: true,
-                        useDefaultAddress: true,
-                        useRedundancy: false,
-                        primary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        secondary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        rtp: {
-                            tsDelta: '0',
-                            payloadId: '96',
-                            ssrc: '0',
-                        },
-                    },
-                },
-            ],
-            audio: [
-                {
-                    isActive: true,
-                    settings: {
-                        audioChannels: '2',
-                        packetTime: '1ms',
-                    },
-                    network: {
-                        enabled: true,
-                        useDefaultAddress: true,
-                        useRedundancy: false,
-                        primary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        secondary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        rtp: {
-                            tsDelta: '0',
-                            payloadId: '97',
-                            ssrc: '0',
-                        },
-                    },
-                },
-                {
-                    isActive: true,
-                    settings: {
-                        audioChannels: '8',
-                        packetTime: '1ms',
-                    },
-                    network: {
-                        enabled: true,
-                        useDefaultAddress: true,
-                        useRedundancy: false,
-                        primary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        secondary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        rtp: {
-                            tsDelta: '0',
-                            payloadId: '97',
-                            ssrc: '0',
-                        },
-                    },
-                },
-                {
-                    isActive: true,
-                    settings: {
-                        audioChannels: '8',
-                        packetTime: '125us',
-                    },
-                    network: {
-                        enabled: true,
-                        useDefaultAddress: true,
-                        useRedundancy: false,
-                        primary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        secondary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        rtp: {
-                            tsDelta: '0',
-                            payloadId: '97',
-                            ssrc: '0',
-                        },
-                    },
-                },
-                {
-                    isActive: true,
-                    settings: {
-                        audioChannels: '64',
-                        packetTime: '125us',
-                    },
-                    network: {
-                        enabled: true,
-                        useDefaultAddress: true,
-                        useRedundancy: false,
-                        primary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        secondary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        rtp: {
-                            tsDelta: '0',
-                            payloadId: '97',
-                            ssrc: '0',
-                        },
-                    },
-                },
-            ],
-            anc: [
-                {
-                    isActive: true,
-                    network: {
-                        enabled: true,
-                        useDefaultAddress: true,
-                        useRedundancy: false,
-                        primary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        secondary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        rtp: {
-                            tsDelta: '0',
-                            payloadId: '100',
-                            ssrc: '0',
-                        },
-                    },
-                },
-            ],
-            alpha: [
-                {
-                    isActive: false,
-                    network: {
-                        enabled: true,
-                        useDefaultAddress: true,
-                        useRedundancy: false,
-                        primary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        secondary: {
-                            destAddr: '',
-                            destPort: '',
-                        },
-                        rtp: {
-                            tsDelta: '0',
-                            payloadId: '101',
-                            ssrc: '0',
-                        },
-                    },
-                },
-            ],
-        },
-    };
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
 
     const connectorSource = {
         enabled: true,
@@ -294,42 +148,79 @@ async function generatorCapturePcap(username: string, password: string, address:
 
     try {
         await vero.login(username, password);
-
-        const genlockWaitResult = await vero.settings.setGenlockSync(
-            { family: GenlockFamily.genlock25 },
-            setGenlockTimeoutMs
+        await vero.settings.setGenlockSync({ family: GenlockFamily.genlock30M }, setGenlockTimeoutMs);
+        const profiles = await vero.signalGenerator.profiles.getAll();
+        interface IProfileIndex {
+            index: number;
+            name: string;
+        }
+        // Create array of <index, name>
+        const profileIdxNames = profiles.content.map(
+            (profile: IGeneratorProfile, index: number): IProfileIndex => ({
+                index: index,
+                name: profile.meta.description,
+            })
         );
-
+        profileIdxNames.forEach((entry: IProfileIndex) => {
+            console.log(`${entry.index + 1}\t: ${entry.name}`);
+        });
+        const profileIndex = (await askForNumber('Choose a profile: ', rl)) - 1;
+        // TODO: check if index is valid
+        const chosenProfile: IGeneratorProfile = profiles.content[profileIndex];
+        // Force redundancy on every sender
+        const videos = chosenProfile.senders.video ?? [];
+        const audios = chosenProfile.senders.audio ?? [];
+        const ancs = chosenProfile.senders.anc ?? [];
+        const senders = [...videos, ...audios, ...ancs];
+        senders.forEach((item) => (item.network.useRedundancy = true));
         const generatorAwaiter = vero.signalGenerator.makeAwaiter(
             GeneratorChannelId.channel1,
-            senderProfile.id,
+            chosenProfile.id,
             startGeneratorTimeoutMs
         );
-        await vero.signalGenerator.start(GeneratorChannelId.channel1, senderProfile);
-        const generatorWaitResult = await generatorAwaiter;
+        await vero.signalGenerator.start(GeneratorChannelId.channel1, chosenProfile);
+        const generatorWaitResult: IGeneratorStatus | undefined = await generatorAwaiter;
         if (!generatorWaitResult) throw new Error('Timeout waiting for the generator to start');
+        const activeVideos = generatorWaitResult.video ?? [];
+        const activeAudios = generatorWaitResult.audio ?? [];
+        const activeAncs = generatorWaitResult.anc ?? [];
+        const activeSenders = [...activeVideos, ...activeAudios, ...activeAncs];
+        const sourceAddresses = activeSenders.map((item) => ({
+            primary: {
+                multicastAddress: item.network.primary?.destAddr,
+                destinationPort: item.network.primary?.destPort,
+            },
+            secondary: {
+                multicastAddress: item.network.secondary?.destAddr,
+                destinationPort: item.network.secondary?.destPort,
+            },
+        }));
+        console.log(JSON.stringify(sourceAddresses));
 
-        await vero.capture.selectSource(connectorKind, connectorSourceIndex, connectorSource);
+        if (vero.wsClient) {
+            const generatorStatus = await waitForSfpStatus(vero.wsClient, 5000);
+            console.log(JSON.stringify(generatorStatus?.sfps_telemetry[0].rx_rate));
+        }
+
+        // await vero.capture.selectSource(connectorKind, connectorSourceIndex, connectorSource);
         const activeRateAwaiter = await vero.capture.makeSfpStateAwaiter(getActiveRateCondition(), activeRateTimeoutMs);
         if (!activeRateAwaiter) {
             throw new Error('Timeout waiting for the minimum rate');
         }
-
-        const captureAwaiter = vero.capture.makeCaptureAwaiter(captureSettings.id, captureCompletionTimeoutMs);
-        await vero.capture.start(captureSettings);
-        const captureResult = await captureAwaiter;
-
-        if (!captureResult) {
-            throw new Error('Timeout waiting for the capture to complete');
-        }
-        if (captureResult.state !== CaptureJobState.Completed) {
-            throw new Error('Capture failed');
-        }
-
-        if (!captureResult.result?.analysis) {
-            throw new Error('Pcap doesnt exist');
-        }
+        // const captureAwaiter = vero.capture.makeCaptureAwaiter(captureSettings.id, captureCompletionTimeoutMs);
+        // await vero.capture.start(captureSettings);
+        // const captureResult = await captureAwaiter;
+        // if (!captureResult) {
+        //     throw new Error('Timeout waiting for the capture to complete');
+        // }
+        // if (captureResult.state !== CaptureJobState.Completed) {
+        //     throw new Error('Capture failed');
+        // }
+        // if (!captureResult.result?.analysis) {
+        //     throw new Error('Pcap doesnt exist');
+        // }
     } finally {
+        rl.close();
         vero.close();
     }
 }
